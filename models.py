@@ -77,7 +77,7 @@ class MobileNet(nn.Module):
 
 class ResidualBlock(nn.Module):
     def __init__(self, input_ch, output_ch, bottle_neck_ch=0, pre_activation=False, first_conv_stride=1, n_groups=1,
-                 attention='CBAM', group_size=2, disable_attention=False):
+                 attention='CBAM', group_size=2):
         super(ResidualBlock, self).__init__()
         act = nn.ReLU(inplace=True)
         norm = nn.BatchNorm2d
@@ -134,7 +134,7 @@ class ResidualBlock(nn.Module):
             block += [SqueezeExcitationBlock(output_ch)]
 
         elif attention == 'TAM':
-            block += [TAM(output_ch, group_size, bypass=disable_attention)]
+            block += [TAM(output_ch, group_size)]
 
         if input_ch != output_ch:
             side_block = [nn.Conv2d(input_ch, output_ch, 1, stride=first_conv_stride, bias=False),
@@ -155,7 +155,7 @@ class ResidualBlock(nn.Module):
 
 
 class ResidualNetwork(nn.Module):
-    def __init__(self, n_layers=50, dataset='ImageNet', attention='TAM', group_size=2, disable_attention=0):
+    def __init__(self, n_layers=50, dataset='ImageNet', attention='TAM', group_size=2):
         super(ResidualNetwork, self).__init__()
         RB = partial(ResidualBlock, attention=attention, group_size=group_size)
 
@@ -219,27 +219,25 @@ class ResidualNetwork(nn.Module):
             network += [nn.AdaptiveAvgPool2d((1, 1)), View(-1), nn.Linear(512, n_classes)]
 
         elif n_layers == 50:
-            network += [RB(64, 256, bottle_neck_ch=64, disable_attention=True if disable_attention == 1 else False)]
-            network += [RB(256, 256, bottle_neck_ch=64, disable_attention=True if disable_attention == 2 else False)]
-            network += [RB(256, 256, bottle_neck_ch=64, disable_attention=True if disable_attention == 3 else False)]
+            network += [RB(64, 256, bottle_neck_ch=64)]
+            network += [RB(256, 256, bottle_neck_ch=64)]
+            network += [RB(256, 256, bottle_neck_ch=64)]
 
-            network += [RB(256, 512, bottle_neck_ch=128, first_conv_stride=2,
-                           disable_attention=True if disable_attention == 4 else False)]  # 28
-            network += [RB(512, 512, bottle_neck_ch=128, disable_attention=True if disable_attention == 5 else False)]
-            network += [RB(512, 512, bottle_neck_ch=128, disable_attention=True if disable_attention == 6 else False)]
-            network += [RB(512, 512, bottle_neck_ch=128, disable_attention=True if disable_attention == 7 else False)]
+            network += [RB(256, 512, bottle_neck_ch=128, first_conv_stride=2)]  # 28
+            network += [RB(512, 512, bottle_neck_ch=128)]
+            network += [RB(512, 512, bottle_neck_ch=128)]
+            network += [RB(512, 512, bottle_neck_ch=128)]
 
-            network += [RB(512, 1024, bottle_neck_ch=256, first_conv_stride=2,
-                           disable_attention=True if disable_attention == 8 else False)]  # 14
-            network += [RB(1024, 1024, bottle_neck_ch=256, disable_attention=True if disable_attention == 9 else False)]
-            network += [RB(1024, 1024, bottle_neck_ch=256, disable_attention=True if disable_attention == 10 else False)]
-            network += [RB(1024, 1024, bottle_neck_ch=256, disable_attention=True if disable_attention == 11 else False)]
-            network += [RB(1024, 1024, bottle_neck_ch=256, disable_attention=True if disable_attention == 12 else False)]
-            network += [RB(1024, 1024, bottle_neck_ch=256, disable_attention=True if disable_attention == 13 else False)]
+            network += [RB(512, 1024, bottle_neck_ch=256, first_conv_stride=2)]  # 14
+            network += [RB(1024, 1024, bottle_neck_ch=256)]
+            network += [RB(1024, 1024, bottle_neck_ch=256)]
+            network += [RB(1024, 1024, bottle_neck_ch=256)]
+            network += [RB(1024, 1024, bottle_neck_ch=256)]
+            network += [RB(1024, 1024, bottle_neck_ch=256)]
 
-            network += [RB(1024, 2048, bottle_neck_ch=512, first_conv_stride=2, disable_attention=True if disable_attention == 14 else False)]
-            network += [RB(2048, 2048, bottle_neck_ch=512, disable_attention=True if disable_attention == 15 else False)]
-            network += [RB(2048, 2048, bottle_neck_ch=512, disable_attention=True if disable_attention == 16 else False)]
+            network += [RB(1024, 2048, bottle_neck_ch=512)]
+            network += [RB(2048, 2048, bottle_neck_ch=512)]
+            network += [RB(2048, 2048, bottle_neck_ch=512)]
 
             network += [nn.AdaptiveAvgPool2d((1, 1)), View(-1), nn.Linear(2048, n_classes)]
 
