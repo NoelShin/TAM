@@ -15,6 +15,9 @@ class BasicConv(nn.Module):
                                   nn.ReLU(True))
         if attention == 'SE':
             self.conv.add_module("Attention", SqueezeExcitationBlock(output_ch))
+            
+        elif attention == 'CBAM':
+            self.conv.add_module("Attention", CBAM(output_ch))
 
         elif attention == 'TAM':
             self.conv.add_module("Attention", TAM(output_ch, group_size))
