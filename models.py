@@ -238,7 +238,7 @@ class ResidualNetwork(nn.Module):
             network += [RB(1024, 1024, bottle_neck_ch=256)]
             network += [RB(1024, 1024, bottle_neck_ch=256)]
 
-            network += [RB(1024, 2048, bottle_neck_ch=512)]
+            network += [RB(1024, 2048, bottle_neck_ch=512, first_conv_stride=2)]
             network += [RB(2048, 2048, bottle_neck_ch=512)]
             network += [RB(2048, 2048, bottle_neck_ch=512)]
 
